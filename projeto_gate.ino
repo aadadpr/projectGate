@@ -6,7 +6,7 @@ int pnInfra = 5;
 //Fim de curso
 int pnEndLineOpen = 7;
 int pnEndLineClose = 6;
-//Botoes
+//Botoes 
 int pnButtonOpen = 8;
 int pnButtonClose = 9;
 //Rele do controle
