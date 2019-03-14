@@ -14,6 +14,9 @@ int pnReleControl = 2;
 //Variavel que define que o portao vai abrir
 int openGate = 1;
 
+int lastEndLineClose = 0;
+int lastEndLineOpen = 0;
+
 int lastStatControl = 1;
 int statControl = 1;
 void setup()
@@ -37,10 +40,12 @@ void setup()
     pinMode(pnReleGateClose, OUTPUT);
     digitalWrite(pnReleGateClose, HIGH);
     
-
-
     Serial.begin(9600);
 
+    lastStatControl = digitalRead(pnReleControl);
+    lastEndLineOpen = digitalRead(pnEndLineOpen);
+    lastEndLineClose = digitalRead(pnEndLineClose);
+    
     close();
 }
 
@@ -50,18 +55,17 @@ void loop()
     statControl = digitalRead(pnReleControl);
     
 //Caso o controle ative permanente o rele
-/*
+
     if (statControl != lastStatControl)
     {
         lastStatControl = statControl;
-        if(digitalRead(pnEndLineOpen) == 1){
+        if(lastEndLineOpen == 1){
             close();
-        }else if(digitalRead(pnEndLineClose) == 1){
+        }else if(lastEndLineClose == 1){
             open();
         }
-
     }
-*/
+
 
 //Caso o controle ative como se fosse click  
 /*
@@ -78,9 +82,7 @@ void loop()
         }else if(digitalRead(pnEndLineClose) == 1){
             open();
         }
-
     } 
-
     */
     if(digitalRead(pnButtonOpen) == 0){
         open();
@@ -91,21 +93,24 @@ void loop()
 
 
 void open(){
-    while(digitalRead(pnEndLineOpen) == 0){
+    lastEndLineOpen = digitalRead(pnEndLineOpen);
+    while(lastEndLineOpen == 0){
         Serial.println("Open");
         Serial.println("EndLineOpen");
         Serial.println(digitalRead(pnEndLineOpen));
         //Ativando rele
         digitalWrite(pnReleGateOpen, LOW);
         delay(10);
+
+        lastEndLineOpen = digitalRead(pnEndLineOpen);
     }
     //Desativando rele
     digitalWrite(pnReleGateOpen, HIGH);
 }
 
 void close(){
-    
-    while(digitalRead(pnEndLineClose) == 0){
+    lastEndLineClose = digitalRead(pnEndLineClose)
+    while(lastEndLineClose == 0){
         Serial.println("Close");
         Serial.println("EndLineClose");
         Serial.println(digitalRead(pnEndLineClose));
@@ -119,7 +124,9 @@ void close(){
             open();
             return;
         }
+        lastEndLineClose = digitalRead(pnEndLineClose);
     }
+    
     //Desativando rele
     digitalWrite(pnReleGateClose, HIGH);
 }
