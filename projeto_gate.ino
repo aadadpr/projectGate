@@ -100,10 +100,7 @@ void close(){
             open();
             return;
         }
-        
-        //Atualizando sensor para o loop
         lastEndLineClose = digitalRead(pnEndLineClose);
-        //Atualizando posicao do outro sensor
         lastEndLineOpen = digitalRead(pnEndLineOpen);
     }
     
