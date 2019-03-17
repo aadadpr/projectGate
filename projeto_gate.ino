@@ -30,11 +30,12 @@ void setup()
     pinMode(pnEndLineClose, OUTPUT);
 
 
-    pinMode(pnButtonOpen, INPUT);
+    pinMode(pnButtonOpen, OUTPUT);
     digitalWrite(pnButtonOpen, HIGH);
     
     pinMode(pnButtonClose, OUTPUT);
-
+    digitalWrite(pnButtonClose, HIGH);
+    
     pinMode(pnReleGateOpen, OUTPUT);
     digitalWrite(pnReleGateOpen, HIGH);
     pinMode(pnReleGateClose, OUTPUT);
@@ -54,66 +55,41 @@ void loop()
   
     statControl = digitalRead(pnReleControl);
     
-//Caso o controle ative permanente o rele
-
-    if (statControl != lastStatControl)
-    {
-        lastStatControl = statControl;
-        if(lastEndLineOpen == 1){
-            close();
-        }else if(lastEndLineClose == 1){
-            open();
-        }
-    }
-
-
-//Caso o controle ative como se fosse click  
-/*
-    if (digitalRead(pnReleControl) == 0)
-    {
-        Serial.println("Inicial Open");
-        Serial.println(digitalRead(pnEndLineOpen));
-        Serial.println("Inicial Close");
-        Serial.println(digitalRead(pnEndLineClose));
-        lastStatControl = statControl;
-        
-        if(digitalRead(pnEndLineOpen) == 1){
-            close();
-        }else if(digitalRead(pnEndLineClose) == 1){
-            open();
-        }
-    } 
-    */
+    //botao de abrir
     if(digitalRead(pnButtonOpen) == 0){
+        Serial.println("lastOPEN:");
+        Serial.println(lastEndLineOpen);
         open();
+   //botao de fechar
     }else if(digitalRead(pnButtonClose) == 0){
+        Serial.println("lastCLOSE:");
+        Serial.println(pnEndLineClose);
         close();
     }
 }
 
 
 void open(){
-    lastEndLineOpen = digitalRead(pnEndLineOpen);
+
     while(lastEndLineOpen == 0){
-        Serial.println("Open");
-        Serial.println("EndLineOpen");
-        Serial.println(digitalRead(pnEndLineOpen));
         //Ativando rele
         digitalWrite(pnReleGateOpen, LOW);
         delay(10);
-
+        
+        //Atualizando sensor para o loop
         lastEndLineOpen = digitalRead(pnEndLineOpen);
+        //Atualizando posicao do outro sensor
+        lastEndLineClose = digitalRead(pnEndLineClose);
     }
     //Desativando rele
     digitalWrite(pnReleGateOpen, HIGH);
+    Serial.println("lastOPEN:");
+    Serial.println(lastEndLineOpen);
 }
 
 void close(){
-    lastEndLineClose = digitalRead(pnEndLineClose)
+
     while(lastEndLineClose == 0){
-        Serial.println("Close");
-        Serial.println("EndLineClose");
-        Serial.println(digitalRead(pnEndLineClose));
         //Ativando rele
         digitalWrite(pnReleGateClose, LOW);
         delay(10);
@@ -124,9 +100,15 @@ void close(){
             open();
             return;
         }
+        
+        //Atualizando sensor para o loop
         lastEndLineClose = digitalRead(pnEndLineClose);
+        //Atualizando posicao do outro sensor
+        lastEndLineOpen = digitalRead(pnEndLineOpen);
     }
     
     //Desativando rele
     digitalWrite(pnReleGateClose, HIGH);
+    Serial.println("lastCLOSE:");
+    Serial.println(pnEndLineClose);
 }
