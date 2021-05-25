@@ -11,18 +11,15 @@ int pnButtonOpen = 8;
 int pnButtonClose = 9;
 //Rele do controle
 int pnReleControl = 2;
-//Variavel que define que o portao vai abrir
-int openGate = 1;
 
 int lastEndLineClose = 0;
 int lastEndLineOpen = 0;
-
-int lastStatControl = 1;
-int statControl = 1;
+//Variavel que guarda o tempo para acionamento do controle dentro do void "open" "close"
+int time = 0;
 void setup()
 {
     pinMode(pnReleControl, OUTPUT);
-    //digitalWrite(pnReleControl, HIGH);
+  digitalWrite(pnReleControl, HIGH);
     
     pinMode(pnInfra, OUTPUT);
     
@@ -43,7 +40,7 @@ void setup()
     
     Serial.begin(9600);
 
-    lastStatControl = digitalRead(pnReleControl);
+   
     lastEndLineOpen = digitalRead(pnEndLineOpen);
     lastEndLineClose = digitalRead(pnEndLineClose);
     
@@ -53,17 +50,21 @@ void setup()
 void loop()
 {
   
-    statControl = digitalRead(pnReleControl);
-    
+ while(digitalRead(pnInfra) == 0){
+ /*Portão não funciona caso aja algum problema com o infra vermelho
+ * Fica preso no while até infra voltar a emitir sinal
+ */
+  }
+    //Direciona para o void Controle
+    //Controle rf com rele pulso 
+    if (digitalRead(pnReleControl) == 0){
+       controle();   
+    } 
     //botao de abrir
     if(digitalRead(pnButtonOpen) == 0){
-        Serial.println("lastOPEN:");
-        Serial.println(lastEndLineOpen);
         open();
    //botao de fechar
     }else if(digitalRead(pnButtonClose) == 0){
-        Serial.println("lastCLOSE:");
-        Serial.println(pnEndLineClose);
         close();
     }
 }
@@ -71,41 +72,85 @@ void loop()
 
 void open(){
 
-    while(lastEndLineOpen == 0){
+    while(lastEndLineOpen == 0 & digitalRead(pnInfra) == 1){
         //Ativando rele
         digitalWrite(pnReleGateOpen, LOW);
-        delay(10);
+        
+        delay(100);
+        
+        if (digitalRead(pnReleControl) == 0 & time > 2000){
+          
+        //Atualizando sensor para o loop
+        lastEndLineOpen = 1;
+        //Atualizando posicao do outro sensor
+        lastEndLineClose = digitalRead(pnEndLineClose);
+        break; 
+        }
         
         //Atualizando sensor para o loop
         lastEndLineOpen = digitalRead(pnEndLineOpen);
         //Atualizando posicao do outro sensor
         lastEndLineClose = digitalRead(pnEndLineClose);
+      time += 100;
+    }
+    
+    if(digitalRead(pnInfra) == 0){
+        //Atualizando sensor para o loop
+         lastEndLineOpen = 1;
+        //Atualizando posicao do outro sensor
+        lastEndLineClose = digitalRead(pnEndLineClose);
+      time = 0;
     }
     //Desativando rele
     digitalWrite(pnReleGateOpen, HIGH);
-    Serial.println("lastOPEN:");
-    Serial.println(lastEndLineOpen);
+    time = 0;
+   delay(2000);
 }
 
 void close(){
 
-    while(lastEndLineClose == 0){
+    while(lastEndLineClose == 0 & digitalRead(pnInfra) == 1){
         //Ativando rele
         digitalWrite(pnReleGateClose, LOW);
-        delay(10);
-        //Condicao para se alguem passar na frente do portao quando ele estiver fechando
-        //Caso alguem passe, o portao ira abrir
-        if(digitalRead(pnInfra) == 1){
-            digitalWrite(pnReleGateClose, HIGH);
-            open();
-            return;
+        
+        delay(100);
+        
+        if (digitalRead(pnReleControl) == 0 & time > 2000){
+          
+        //Atualizando sensor para o loop
+        lastEndLineClose = 1;
+        //Atualizando posicao do outro sensor
+         lastEndLineOpen = digitalRead(pnEndLineOpen);
+       
+        break;          
         }
+        
+        //Atualizando sensor para o loop
         lastEndLineClose = digitalRead(pnEndLineClose);
+        //Atualizando posicao do outro sensor
         lastEndLineOpen = digitalRead(pnEndLineOpen);
+      time += 100;
     }
     
+    if(digitalRead(pnInfra) == 0){
+        lastEndLineClose = 1;
+        lastEndLineOpen = digitalRead(pnEndLineOpen);
+      time = 0;
+    }
     //Desativando rele
     digitalWrite(pnReleGateClose, HIGH);
-    Serial.println("lastCLOSE:");
-    Serial.println(pnEndLineClose);
+  time = 0;
+   delay(2000);
+  
+}
+
+void controle(){
+  
+          
+   if(lastEndLineOpen == 0){
+          open();
+   }else if(lastEndLineClose == 0){
+          close(); 
+        }       
+ 
 }
